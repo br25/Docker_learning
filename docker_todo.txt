@@ -1,0 +1,247 @@
+###////Docker Commands////
+
+//docker doemon connect in unix
+1.systemctl start docker
+
+//version check
+2.sudo docker version
+
+//install docker/whalesay in dockerhub
+3.docker run docker/whalesay cowsay [hello world!]
+
+//start & run containers -- nginx= container_name version set = ([container_name]:4.0)
+4.docker run [container_name]
+//docker run -d -- (-d) means docker file don't create a single images on single container
+
+//list running containers 
+5.docker ps
+
+//list running or not containers
+6.docker ps -a
+
+//stop container 
+7.docker stop [container_name]
+
+//remove container
+8.docker rm [container_name]
+
+//list image
+9.docker images
+
+//remove images - rmi -- Delete all dependent containers to remove image
+10.docker rmi [container_name]
+
+//pull-download an image -- (docker run [container_name])when unable to find [container_name]
+11.docker pull [container_name]
+ 
+//append a command
+12.docker run [linux_kernal] sleep 5
+
+//execute a command
+13.docker exec distracted_mcclintock cat /etc/hosts
+
+//run - attach and detach -- (docker run kodekloud/simple-webapp) this is a sample web application {show}
+14.docker run -d [container_name]
+//result = a0443ddhuahdada45d5as1d5a4
+//then run -- 
+15.docker attach a0443 
+//////
+
+
+
+
+###//// Docker LAB --  best practice docker ////
+1.https://kodekloud.com/p/docker-labs
+/////
+
+
+###////install containers on this tutorial/////
+1.whalesay
+2.redis:4.0
+3.nginx
+4.ubuntu
+5.kodekloud/simple-webapp --//sudo docker run -d kodekloud/simple-webapp
+//////
+
+
+###///// Run - STDIN or Project/////
+1.sudo docker run kodekloud/simple-prompt-docker
+// input a name -- tag (-i)
+2.sudo docker run -i kodekloud/simple-prompt-docker
+//ternal interactive mood -- (-it)
+3.sudo docker run -it kodekloud/simple-prompt-docker
+
+////Run - port mapping////
+1.sudo docker run kodekloud/simple-webapp
+//port change command -- (-p) 80:5000
+2.sudo docker run -p 80:8080 kodekloud/simple-webapp
+//port change on any images
+3.docker run -p 8306:3306 mysql
+
+////Run- Volume mapping////
+1.docker run mysql
+//if we create new container and transfer this image then
+2.docker run -v /opt/datadir:/var/lib/mysql mysql
+
+////inspect Container///
+1.docker inspect [container_name]
+
+////container logs///
+1.docker logs [container_name]
+/////////
+
+
+###////ENV - Environment in Docker/////
+//if we create a python file with flask rendering then we make this application container and we want to color change --
+1.docker run -e APP_COLOR=blue simple-webapp-color
+2.docker run -e APP_COLOR=red simple-webapp-color
+//then we see this change on python file
+3.docker inspect [container_name]
+////////
+
+
+
+###/////Create own image////
+//create Dockerfile -- Instrustion = RUN, Argument = apt-get update//
+1. 
+From ubuntu
+
+RUN apt-get update
+RUN apt-get install python
+
+RUN pip install flask
+RUN pip install flask-mysql
+
+COPY . /home/oreo/Desktop/Docker/source-code
+
+ENTRYPOINT FLASK_APP=/home/oreo/Desktop/Docker/source-code/app.py flask run
+
+//docker build
+2.docker build Dockerfile -t robin/my-custom-app
+3.docker push robin/my-custom-app
+////////
+
+
+###////we learn //////
+//cmd vs entry point
+1.entry point = sleep and cmd to value genarate
+2.Namespace - PID
+3.containerization
+4.Docker on windows - toolbox,virttualbox,
+5.Docker on Mac
+
+
+
+###////Networks////
+//Default networks
+1.docker run Ubuntu //Bridge networks
+2.docker run Ubuntu --network=none //none network
+3.docker run Ubuntu --network=host //host network
+
+//network create
+4.
+docker network create \
+    --driver bridge \
+    --subnet 182.18.0.0/16
+    custom-isolated-network
+
+//network list show
+5.docker network ls
+
+//inspect network
+6.docker inspect [container_name]
+
+//Embedded DNS 
+//2 container connect to 2 ways -- 1.host 2.ip
+7.mysql.connect( 172.17.0.2 ) or mysql.connect( mysql ) 
+/////
+
+
+###/////Storage ////
+//create a Volume
+1.docker info
+2.docker volume create data_volume
+3.docker run -v data_volume:/var/lib/mysql mysql
+4.docker run -v data_volume2:/var/lib/mysql mysql
+5.docker run -v /data/mysql:/var/lib/mysql mysql
+6.
+docker run \
+--mount type=bind,source=/data/mysql,target=/var/lib/mysql mysql
+//////
+
+
+###////Docker Compose////
+1.docker run robin/simple-webapp
+2.docker run mongodb
+3.docker run redis:alpine
+4.docker run ansible
+5.docker-compose.yml
+6.docker-compose up
+///////
+
+
+
+
+###//////create a simple voting application/////
+// architechture --- voting-app select number(python) -> in-memory DB(redis) -> worker(.net)->db(mongodb)->result-app(nodejs)
+1.docker run -d --name=redis redis
+2.docker run -d --name=db postgres:9.4 
+3.docker run -d --name=vote -p 5000:80 --link redis:redis voting-app
+4.docker run -d --name=result -p 5001:80 --link db:db result-app
+5.docker run -d --name=worker --link db:db --link redis:redis worker
+6.docker-compose.yml
+//////
+
+
+###////Docker Registry/////
+1.docker run nginx //docker.io normar registry
+//private registry
+2.docker login private-registry.io
+3.docker run private-registry.io/apps/internal-app
+//Deploy private registry
+4.docker run -d -p 5000:5000 --name registry registry:2
+5.docker image tag my-image localhost:5000/my-image
+6.docker push localhost:5000/my-image
+7.docker pull localhost:5000/my-image
+8.docker pull 192.168.56.100:5000/my-image
+//////
+
+
+
+###////Docker Engine////
+//Docker CLI-> REST API-> Docker Deamon
+//if we share the docker file on Laptop
+1.docker -H=remote-docker-engine:2375
+//run nginx
+2.docker -H=10.123.2.1:2375 run nginx
+//Namespace - PID,containerization
+//cgroups create
+3.docker run --cpus=.5 ubuntu
+4.docker run --memory=100m ubuntu
+//////
+
+###/////Container Orchestration//////
+1.docker service create --replicas=100 nodejs
+//there have 100 nodejs in many docker 
+//the solution is kubernetes,docker swarm etc
+//Docker service swarm
+2.docker run my-web-server
+3.docker service create --replicas=3 my-web-server
+4.docker service create --replicas=3 -p 8080:80 my-web-server
+5.docker service create --replicas=3 --network frontend my-web-server
+//Docker service kubernetes
+6.docker run my-web-server
+7.kubectl run --replicas=1000 my-web-server
+//scalling containers
+8.kubectl scale --replicas=2000 my-web-server
+//rolling containers
+9.kubectl rolling-update my-web-update my-web-server --image-web-server:2
+//rollback containers
+10.kubectl rolling-update my-web-server --rollback
+
+//kubectl
+11.kubectl run hello-kubeUser
+12.kubectl cluster-info
+13.kubectl get nodejs
+14.kubectl run my-web-app --image=my-web-app --replicas=100
+/////
